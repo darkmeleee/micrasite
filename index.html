@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тренажер к экзамену по микроэкономике</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; line-height: 1.5; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; }
+        .question-block { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .q-text { font-weight: bold; font-size: 1.1em; margin-bottom: 10px; }
+        .options-list { list-style: none; padding: 0; }
+        .option { background: #f8f9fa; border: 1px solid #ddd; margin: 5px 0; padding: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #e8f0fe; }
+        .option.correct { background: #d4edda; border-color: #28a745; font-weight: bold; }
+        .option.wrong { background: #f8d7da; border-color: #dc3545; }
+        .input-ans { padding: 8px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
+        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.95em; }
+        .justification { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 5px; }
+        .btn-check { background: #1a73e8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .progress { position: sticky; top: 0; background: #1a73e8; color: white; padding: 10px; text-align: center; border-radius: 0 0 8px 8px; z-index: 100; }
+    </style>
+</head>
+<body>
+
+<div class="progress" id="score-board">Выполнено: 0 / 48</div>
+
+<div class="container">
+    <h1>Тренажер по Микроэкономике</h1>
+    <div id="quiz-content"></div>
+</div>
+
+<script>
+const questions = [
+    { id: 1, q: "1. Производится X и Y. Для 1 ед. Х нужно 25 ед. ресурса, для Y – 50 ед. Альтернативные затраты производства последней единицы X:", type: "mcq", options: ["75Y", "25Y", "0.5Y", "2Y"], correct: 2, note: "Альт. издержки X = Ресурс X / Ресурс Y = 25/50 = 0.5Y." },
+    { id: 2, q: "2. Держать 80 тыс. руб. на счете без дохода при ставке 20% годовых. Альтернативные затраты в год (тыс. руб.):", type: "mcq", options: ["96", "64", "400", "16"], correct: 3, note: "Альт. издержки — это упущенная выгода: 80 * 0.20 = 16." },
+    { id: 3, q: "3. Что значит точка на графике КПВ правее и выше кривой?", type: "mcq", options: ["Производится неограниченно", "Производство не максимально эффективно", "Данная комбинация недостижима", "Максимально эффективно"], correct: 2, note: "Точки за пределами КПВ недостижимы при текущих ресурсах." },
+    { id: 4, q: "4. Альтернативные издержки строительства стадиона равны:", type: "mcq", options: ["Сумме затрат на стройку и эксплуатацию", "Сумме налогов", "Ценности других благ, от которых отказались", "Все верно"], correct: 2, note: "Это ценность лучшей из упущенных альтернатив." },
+    { id: 5, q: "5. Событие, вызывающее сдвиг КПВ влево:", type: "mcq", options: ["Выбытие оборудования из-за износа", "5-дневная забастовка учителей", "Наличие свободных земель", "Все перечисленное"], correct: 0, note: "Сдвиг влево означает сокращение производственного потенциала (капитала)." },
+    { id: 6, q: "6. Относительными преимуществами (comparative advantage) обладает страна, которая:", type: "mcq", options: ["Тратит меньше ресурсов", "Производит с меньшими потерями других благ", "Делает лучшее качество", "Все верно"], correct: 1, note: "Это способность производить товар с меньшими альтернативными издержками." },
+    { id: 7, q: "7. Pa=100, Pb=200. Потребитель максимизирует полезность. MUb=50. MUa = ?", type: "mcq", options: ["25", "100", "2", "Недостаточно данных"], correct: 0, note: "Условие: MUa/Pa = MUb/Pb. MUa/100 = 50/200 -> MUa = 25." },
+    { id: 8, q: "8. Функция полезности U=min{3x, y}. Отношение в наборе:", type: "mcq", options: ["Замена 1x на 3y", "Замена 1y на 3x", "3x на 1y", "1x на 3y"], correct: 3, note: "Вершина угла: 3x = y. Значит на 1 единицу x нужно 3 единицы y." },
+    { id: 9, q: "9. Кривые безразличия для товаров А и Б:", type: "mcq", options: ["Все варианты верны", "Имеют одинаковую стоимость", "Не могут пересекаться", "Всегда отрицательны"], correct: 2, note: "Аксиома транзитивности исключает пересечение кривых." },
+    { id: 10, q: "10. Спрос на товар повысится при:", type: "mcq", options: ["Росте дохода и росте цены субститута", "Росте дохода и снижении цены субститута", "Росте дохода и снижении цены этого товара", "Недостаточно инфо"], correct: 0, note: "Рост цены заменителя переключает спрос на наш товар." },
+    { id: 11, q: "11. Вася берет всегда 20 литров бензина. Эластичность спроса у Васи:", type: "mcq", options: ["Бесконечность", "1", "Неизвестно", "0"], correct: 3, note: "Объем потребления не зависит от цены — абсолютно неэластичный спрос." },
+    { id: 12, q: "12. P1=200, Q1=10; P2=180, Q2=12. Точечная эластичность при P=200:", type: "mcq", options: ["20", "-0.5", "-10", "-2"], correct: 3, note: "E = (ΔQ/ΔP) * (P/Q) = (2/-20) * (200/10) = -2." },
+    { id: 13, q: "13. U=X^3 * Y^5. I=16000. Px было 500, стало 600. Эффект замены по Слуцкому (только число):", type: "input", correct: "-1.25", note: "X1=12. I' = 16000 + 12(100) = 17200. X' = (17200*0.375)/600 = 10.75. Изменение: 10.75-12 = -1.25." },
+    { id: 14, q: "14. Что НЕ относится к неэластичному спросу:", type: "mcq", options: ["Много субститутов", "Малая доля дохода", "Товар первой необходимости", "Короткий период", "E < 1"], correct: 0, note: "Наличие множества заменителей делает спрос эластичным." },
+    { id: 15, q: "15. P = 200 – 3Q; TC = 40Q + Q^2 + 10000. Цена при макс. прибыли:", type: "input", correct: "140", note: "MR=200-6Q, MC=40+2Q. 160=8Q -> Q=20. P=200-3(20)=140." },
+    { id: 16, q: "16. Может ли фирма в долгосрочном периоде при сов. конкуренции иметь положит. прибыль?", type: "mcq", options: ["Может, если P > AC", "Не может, она нулевая", "Может, если снизит AC", "Не может, FC > VC"], correct: 1, note: "Свободный вход/выход сводит экономическую прибыль к нулю." },
+    { id: 17, q: "17. Характеристика совершенно конкурентного рынка:", type: "mcq", options: ["Цены чуть выше конкурентов", "Легкое лицензирование", "Госзакупки на конкурсе", "Среди перечисленных нет"], correct: 3, note: "В СК цена задана рынком, а вход абсолютно свободный без лицензий." },
+    { id: 18, q: "18. TR=5000, Q=20 (P=250). MC=300. Что делать для макс. прибыли?", type: "mcq", options: ["Делать больше 20", "Делать меньше 20", "Оставить 20", "Мало данных"], correct: 1, note: "Поскольку MC (300) > MR (250), выпуск нужно сокращать." },
+    { id: 19, q: "19. При FC=100 оптимально Q=500. Что будет при FC=200?", type: "mcq", options: ["250", "500", "1000", "Неизвестно"], correct: 1, note: "Изменение FC не меняет MC, значит точка MR=MC не смещается." },
+    { id: 20, q: "20. При текущем выпуске MC < AVC. При малом росте Q:", type: "mcq", options: ["AVC растет, AC растет", "AVC падает, AC падает", "AVC растет, AC падает", "AVC падает, AC растет"], correct: 1, note: "Если маржинальные издержки ниже средних, они тянут средние вниз." },
+    { id: 21, q: "21. VC=120, AFC=4, AC=10. Найти FC (в тыс.):", type: "input", correct: "80", note: "AVC=10-4=6. Q=120/6=20. FC=4*20=80." },
+    { id: 22, q: "22. Как изменятся затраты при росте цены на электричество (для станков)?", type: "mcq", options: ["Рост TC, VC, FC", "Рост TC, FC, AC, AFC", "Рост TC, VC, AC, AVC, MC", "Все вырастут"], correct: 2, note: "Энергия — это переменный ресурс. FC не меняется." },
+    { id: 23, q: "23. Q1=2000, AC1=88. AC2=100, MC=148. Общие затраты после роста выпуска (тыс. руб.):", type: "input", correct: "250", note: "176+148(Q2-2000)=100Q2. 48Q2=120000 -> Q2=2500. TC=2500*100=250000." },
+    { id: 24, q: "24. Выражение для AVC:", type: "mcq", options: ["(TC-FC)/Q", "(ATC-MC)*Q", "(MC*dQ)/Q", "AC-AFC"], correct: 0, note: "AVC = VC/Q = (TC - FC)/Q." },
+    { id: 25, q: "25. Верное утверждение о прибыли:", type: "mcq", options: ["Экон. прибыль > бухг. на величину неявных", "Бухг. прибыль > экон. на величину бухг. затрат", "Экон. прибыль = 0, если бухг. прибыль = неявным затратам", "Бухг. прибыль = 0, если нормальная = экон."], correct: 2, note: "Экон. прибыль = Бухг. прибыль - Неявные издержки." },
+    { id: 26, q: "26. Q1=50, TC1=800. Новый AC=18, MC=23. Найти TC2:", type: "input", correct: "1260", note: "800+23(Q2-50)=18Q2. 5Q2=350 -> Q2=70. TC2=70*18=1260." },
+    { id: 27, q: "27. Q = min(2K, 5L). Pk=10, Pl=20. Q=100. Общие издержки:", type: "input", correct: "900", note: "K=50, L=20. TC=50*10 + 20*20 = 900." },
+    { id: 28, q: "28. Q = K*L^0.5. Pk=100, Pl=200. K=10. Найти MC при Q=50:", type: "input", correct: "200", note: "L=Q^2/100. VC=200*L=2Q^2. MC=4Q=4*50=200." },
+    { id: 29, q: "29. Гос-во вводит потолок цены P=MC для естественной монополии:", type: "mcq", options: ["Выпуск вырастет, если P > AVC", "Выпуск упадет, если P < AVC", "Выпуск не изменится", "Любой вариант"], correct: 0, note: "Фирма будет производить, пока цена покрывает средние переменные издержки." },
+    { id: 30, q: "30. Qd=430-2P, Qs=-20+P. Субсидия s=6. Сумма расходов гос-ва:", type: "input", correct: "804", note: "Qs_new=P-14. 430-2P=P-14 -> P=148. Q=134. Субсидия=134*6=804." },
+    { id: 31, q: "31. Равновесие Нэша. (50,50), (20,20), (60,10), (10,60):", type: "mcq", options: ["Обе не снижают", "Обе снижают", "А снижает, В нет", "В снижает, А нет"], correct: 1, note: "У обоих доминирующая стратегия — снижать цену (дилемма заключенного)." },
+    { id: 32, q: "32. НЕ естественная монополия:", type: "mcq", options: ["Производство электроэнергии", "Водоснабжение", "Газопровод", "Все - моноп."], correct: 0, note: "Генерация электроэнергии — конкурентная сфера, в отличие от сетей." },
+    { id: 33, q: "33. Q(L)=100L-0.5L^2. L=80, w=1500. Найти цену товара P:", type: "input", correct: "75", note: "MPL=100-L=20. w=P*MPL -> 1500=P*20 -> P=75." },
+    { id: 34, q: "34. P=160-Q. TCi=0.5Qi^2+10Qi. Q картеля:", type: "input", correct: "60", note: "MC_картеля = 0.5Q+10. MR=160-2Q. 160-2Q=0.5Q+10 -> 2.5Q=150 -> Q=60." },
+    { id: 35, q: "35. Предельные факторные издержки на труд (MFC):", type: "mcq", options: ["Рост VC на единицу Q", "Рост ставки w", "Рост TC при найме работника", "Всегда равно w"], correct: 2, note: "Определение: дополнительные затраты на наем еще одной единицы ресурса." },
+    { id: 36, q: "36. Рынок труда:", type: "mcq", options: ["w рост -> рост MPL", "Квалификация -> меньше работников", "Профсоюз -> рост занятых", "У монопсониста нет кривой предложения"], correct: 3, note: "У монопсониста нет однозначной функции предложения труда, как у монополиста товара." },
+    { id: 37, q: "37. При введении субсидии производителям:", type: "mcq", options: ["Расходы гос-ва > выигрыша, благосостояние упадет", "Расходы < выигрыша", "Расходы = выигрышу", "Зависит от размера"], correct: 0, note: "Возникают чистые потери (deadweight loss) из-за избыточного производства." },
+    { id: 38, q: "38. Qd=340-2P, Qs=40+3P. Потолок P=50. Куплено товара:", type: "input", correct: "190", note: "Qd=240, Qs=190. Рынок ограничен меньшим (предложением)." },
+    { id: 39, q: "39. TC=1/3Q^3+Q^2+104Q. P=154-1.5Q. Найти цену P:", type: "input", correct: "146.5", note: "MC=Q^2+2Q+104, MR=154-3Q. Q=5. P=154-1.5*5=146.5." },
+    { id: 40, q: "40. Рост равновесной цены желе и падение количества:", type: "mcq", options: ["Рост цены комплимента", "Рост цены субститута", "Рост цены винограда", "Рост доходов"], correct: 2, note: "Падение предложения (из-за сырья) ведет к P вверх и Q вниз." },
+    { id: 41, q: "Б-1. Эластичность -4. Цена падает на 2%. Объём спроса:", type: "mcq", options: ["Вырастет на 8%", "Упадет на 8%", "Вырастет на 2%", "Вырастет на 4%"], correct: 0, note: "2% * 4 = 8%." },
+    { id: 42, q: "Б-2. Легкие барьеры, много фирм, малая власть:", type: "mcq", options: ["Олигополия", "Монопольная конкуренция", "Сов. конкуренция", "Монопсония"], correct: 1, note: "Ключевое — дифференциация и малая власть при многих игроках." },
+    { id: 43, q: "Б-3. Кривые безразличия для товаров в жесткой пропорции:", type: "mcq", options: ["Отрицательные прямые", "L-образные", "Положительные прямые", "Параллельные оси"], correct: 1, note: "Это товары-комплименты." },
+    { id: 44, q: "Б-4. Мин. зарплата выше равновесной вызывает:", type: "mcq", options: ["Дефицит", "Избыток предложения", "Рост спроса", "Спад предложения"], correct: 1, note: "Безработица (желающих работать больше, чем вакансий)." },
+    { id: 45, q: "Б-5. Ближе всего к совершенной конкуренции:", type: "mcq", options: ["Обмен валют", "Пшеница на бирже", "Газ", "Авто эконом"], correct: 1, note: "Биржевые товары — эталон однородности и множества участников." },
+    { id: 46, q: "Ф-1. MR=360-2Q, MC=60+3Q. Эластичность в точке макс. прибыли:", type: "mcq", options: ["4", "5", "8", "Нет верного"], correct: 1, note: "Q=60, MR=240, P=300. 240=300(1-1/E) -> E=5." },
+    { id: 47, q: "Ф-2. Qd=400-5P, Qs=-20+P. Налог 12 руб. Доходы гос-ва:", type: "mcq", options: ["480", "600", "528", "Нет верного"], correct: 0, note: "P_new=72, Q_new=40. Налог = 40 * 12 = 480." },
+    { id: 48, q: "Ф-4. Q = K^0.5 * L. K=10000, Pl=400. Найти AVC и MC при Q=50:", type: "mcq", options: ["8; 8", "4; 4", "Нет верного", "4; 8"], correct: 1, note: "VC=400*(Q/100)=4Q. AVC=4, MC=4." }
+];
+
+let solvedCount = 0;
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-content');
+    questions.forEach(q => {
+        const div = document.createElement('div');
+        div.className = 'question-block';
+        div.id = `q-block-${q.id}`;
+
+        let actionHtml = '';
+        if (q.type === 'mcq') {
+            actionHtml = `<ul class="options-list">` + 
+                q.options.map((opt, i) => `<li class="option" onclick="checkMcq(${q.id}, ${i}, this)">${opt}</li>`).join('') + 
+                `</ul>`;
+        } else {
+            actionHtml = `<input type="text" class="input-ans" id="input-${q.id}"> 
+                          <button class="btn-check" onclick="checkInput(${q.id})">Проверить</button>`;
+        }
+
+        div.innerHTML = `
+            <div class="q-text">${q.q}</div>
+            ${actionHtml}
+            <div class="feedback" id="feedback-${q.id}"></div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function updateScore() {
+    solvedCount++;
+    document.getElementById('score-board').innerText = `Выполнено: ${solvedCount} / ${questions.length}`;
+}
+
+function checkMcq(id, idx, el) {
+    const q = questions.find(item => item.id === id);
+    const fb = document.getElementById(`feedback-${id}`);
+    const block = document.getElementById(`q-block-${id}`);
+    
+    if (fb.style.display === 'block') return; // Уже ответил
+
+    if (idx === q.correct) {
+        el.classList.add('correct');
+        fb.innerHTML = `✅ Верно!`;
+    } else {
+        el.classList.add('wrong');
+        fb.innerHTML = `❌ Ошибка. Правильный ответ: ${q.options[q.correct]}`;
+    }
+    
+    fb.innerHTML += `<div class="justification">${q.note}</div>`;
+    fb.style.display = 'block';
+    updateScore();
+}
+
+function checkInput(id) {
+    const q = questions.find(item => item.id === id);
+    const val = document.getElementById(`input-${id}`).value.trim().replace(',', '.');
+    const fb = document.getElementById(`feedback-${id}`);
+    
+    if (fb.style.display === 'block') return;
+
+    if (val === q.correct) {
+        fb.innerHTML = `✅ Верно!`;
+    } else {
+        fb.innerHTML = `❌ Ошибка. Правильный ответ: ${q.correct}`;
+    }
+    
+    fb.innerHTML += `<div class="justification">${q.note}</div>`;
+    fb.style.display = 'block';
+    updateScore();
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
